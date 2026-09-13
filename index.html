@@ -1,42 +1,367 @@
-#include<stdio.h>
-int main()
-{
-    int a,b,res,choice;
-    printf("This is a calculator application....\n");
-    printf("1. Enter 1 to add two integer numbers.\n");
-    printf("2. Enter 2 to subtract two integer numbers.\n");
-    printf("3. Enter 3 to multiply two integer numbers.\n");
-    printf("4. Enter 4 to divide two integer numbers.\n");
-    printf("Enter First Number: ");
-    scanf("%d",&a);
-    printf("Enter Second Number: ");
-    scanf("%d",&b);
-    printf("Enter your choice(1 to 4) Numbers: ");
-    scanf("%d",&choice);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Liquid Calculator</title>
+<style>
+  :root{
+    --bg-1: #101826;
+    --bg-2: #0a1018;
+    --glass-fill: rgba(255,255,255,0.08);
+    --glass-fill-strong: rgba(255,255,255,0.14);
+    --glass-border: rgba(255,255,255,0.35);
+    --accent: #3ab6ff;
+    --accent-2: #5ee7c8;
+    --text: #f2f6fa;
+    --text-dim: rgba(242,246,250,0.6);
+  }
 
-    switch(choice)
-    {
-        case 1:
-            res=a+b;
-            printf("Addition is :%d\n",res);
-            break;
-        case 2:
-            res=a-b;
-            printf("Subtraction is :%d\n",res);
-            break;
-        case 3:
-            res=a*b;
-            printf("Multiplication is :%d\n",res);
-            break;
-        case 4:
-            res=a/b;
-            printf("Division is :%d\n",res);
-            break;
-        default:
-            printf("Wrong Input. Please try again with 1 to 4...\n");
-            getchar();
+  *{ box-sizing: border-box; }
+
+  html, body{
+    height: 100%;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: -apple-system, "SF Pro Display", "Helvetica Neue", Arial, sans-serif;
+    background:
+      radial-gradient(circle at 15% 10%, #1e4a5c 0%, transparent 45%),
+      radial-gradient(circle at 85% 15%, #1e3a5c 0%, transparent 40%),
+      radial-gradient(circle at 50% 90%, #1e5c4a 0%, transparent 45%),
+      linear-gradient(160deg, var(--bg-1), var(--bg-2));
+    overflow: hidden;
+  }
+
+  /* floating ambient blobs for the liquid backdrop */
+  .blob{
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(60px);
+    opacity: 0.5;
+    z-index: 0;
+    animation: drift 18s ease-in-out infinite;
+  }
+  .blob.a{ width: 320px; height: 320px; background: #3ab6ff; top: -80px; left: -60px; animation-delay: 0s; }
+  .blob.b{ width: 260px; height: 260px; background: #5ee7c8; bottom: -60px; right: -40px; animation-delay: 4s; }
+  .blob.c{ width: 220px; height: 220px; background: #6a8dff; bottom: 20%; left: -80px; animation-delay: 8s; }
+
+  @keyframes drift{
+    0%, 100% { transform: translate(0,0) scale(1); }
+    50% { transform: translate(20px,-30px) scale(1.08); }
+  }
+
+  .calculator{
+    position: relative;
+    z-index: 1;
+    width: 340px;
+    padding: 22px;
+    border-radius: 44px;
+    background: linear-gradient(145deg, rgba(255,255,255,0.10), rgba(255,255,255,0.03));
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(30px) saturate(160%);
+    -webkit-backdrop-filter: blur(30px) saturate(160%);
+    box-shadow:
+      0 25px 60px rgba(0,0,0,0.55),
+      inset 0 1px 1px rgba(255,255,255,0.4),
+      inset 0 -1px 20px rgba(0,0,0,0.25);
+  }
+
+  .display{
+    padding: 28px 18px 18px;
+    text-align: right;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+
+  .history{
+    font-size: 15px;
+    color: var(--text-dim);
+    min-height: 18px;
+    letter-spacing: 0.3px;
+    word-break: break-all;
+  }
+
+  .result{
+    font-size: 56px;
+    font-weight: 300;
+    color: var(--text);
+    letter-spacing: 0.5px;
+    line-height: 1;
+    word-break: break-all;
+    text-shadow: 0 2px 18px rgba(255,255,255,0.15);
+    transition: transform 0.15s ease;
+  }
+
+  .grid{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  button{
+    position: relative;
+    overflow: hidden;
+    height: 68px;
+    border-radius: 22px;
+    border: 1px solid rgba(255,255,255,0.25);
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text);
+    cursor: pointer;
+    background: var(--glass-fill);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow:
+      inset 0 1px 1px rgba(255,255,255,0.5),
+      inset 0 -6px 10px rgba(0,0,0,0.15),
+      0 6px 14px rgba(0,0,0,0.25);
+    transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button::after{
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 30% 20%, rgba(255,255,255,0.5), transparent 60%);
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  button:active{
+    transform: scale(0.92);
+    box-shadow:
+      inset 0 2px 6px rgba(0,0,0,0.35),
+      inset 0 -2px 4px rgba(255,255,255,0.15);
+  }
+
+  .op{
+    background: linear-gradient(150deg, rgba(58,182,255,0.9), rgba(94,231,200,0.75));
+    color: #082433;
+    font-weight: 600;
+    border: 1px solid rgba(255,255,255,0.4);
+  }
+
+  .op.active{
+    background: linear-gradient(150deg, #fff, #d6f5ff);
+    color: #1e9ae6;
+  }
+
+  .func{
+    background: rgba(255,255,255,0.18);
+    color: var(--text);
+    font-weight: 600;
+  }
+
+  .zero{
+    grid-column: span 2;
+    border-radius: 34px;
+    justify-content: flex-start;
+    padding-left: 28px;
+    text-align: left;
+  }
+
+  @media (max-width: 380px){
+    .calculator{ width: 92vw; padding: 16px; border-radius: 32px; }
+    button{ height: 60px; font-size: 21px; }
+    .result{ font-size: 44px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="blob a"></div>
+<div class="blob b"></div>
+<div class="blob c"></div>
+
+<div class="calculator">
+  <div class="display">
+    <div class="history" id="history">&nbsp;</div>
+    <div class="result" id="result">0</div>
+  </div>
+
+  <div class="grid">
+    <button class="func" data-action="clear">AC</button>
+    <button class="func" data-action="sign">±</button>
+    <button class="func" data-action="percent">%</button>
+    <button class="op" data-op="÷">÷</button>
+
+    <button data-num="7">7</button>
+    <button data-num="8">8</button>
+    <button data-num="9">9</button>
+    <button class="op" data-op="×">×</button>
+
+    <button data-num="4">4</button>
+    <button data-num="5">5</button>
+    <button data-num="6">6</button>
+    <button class="op" data-op="−">−</button>
+
+    <button data-num="1">1</button>
+    <button data-num="2">2</button>
+    <button data-num="3">3</button>
+    <button class="op" data-op="+">+</button>
+
+    <button class="zero" data-num="0">0</button>
+    <button data-action="decimal">.</button>
+    <button class="op" data-action="equals">=</button>
+  </div>
+</div>
+
+<script>
+  const resultEl = document.getElementById('result');
+  const historyEl = document.getElementById('history');
+
+  let current = "0";
+  let previous = null;
+  let operator = null;
+  let justEvaluated = false;
+
+  function updateDisplay(){
+    resultEl.textContent = formatNumber(current);
+    historyEl.textContent = previous !== null && operator
+      ? `${formatNumber(previous)} ${operator}`
+      : "\u00A0";
+  }
+
+  function formatNumber(numStr){
+    if (numStr === "Error") return numStr;
+    let [intPart, decPart] = numStr.split(".");
+    const neg = intPart.startsWith("-");
+    if(neg) intPart = intPart.slice(1);
+    intPart = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    let out = (neg ? "-" : "") + intPart;
+    if(decPart !== undefined) out += "." + decPart;
+    return out;
+  }
+
+  function inputDigit(d){
+    if(justEvaluated){
+      current = d;
+      justEvaluated = false;
+    } else {
+      current = current === "0" ? d : current + d;
     }
-    printf("Press any key to exit...\n");
+    pulse();
+  }
 
-    return 0;
-}
+  function inputDecimal(){
+    if(justEvaluated){
+      current = "0.";
+      justEvaluated = false;
+      return;
+    }
+    if(!current.includes(".")) current += ".";
+  }
+
+  function clearAll(){
+    current = "0";
+    previous = null;
+    operator = null;
+    justEvaluated = false;
+  }
+
+  function toggleSign(){
+    if(current === "0") return;
+    current = current.startsWith("-") ? current.slice(1) : "-" + current;
+  }
+
+  function toPercent(){
+    current = String(parseFloat(current) / 100);
+  }
+
+  function compute(a, b, op){
+    a = parseFloat(a); b = parseFloat(b);
+    switch(op){
+      case "+": return a + b;
+      case "−": return a - b;
+      case "×": return a * b;
+      case "÷": return b === 0 ? NaN : a / b;
+    }
+  }
+
+  function chooseOperator(op){
+    if(operator && previous !== null && !justEvaluated){
+      const res = compute(previous, current, operator);
+      if(isNaN(res)){ showError(); return; }
+      previous = trimResult(res);
+      current = String(previous);
+    } else {
+      previous = current;
+    }
+    operator = op;
+    justEvaluated = false;
+    current = "0";
+  }
+
+  function trimResult(n){
+    if(!isFinite(n)) return NaN;
+    return Math.round(n * 1e10) / 1e10;
+  }
+
+  function equals(){
+    if(operator === null || previous === null) return;
+    const res = compute(previous, current, operator);
+    if(isNaN(res)){ showError(); return; }
+    current = String(trimResult(res));
+    previous = null;
+    operator = null;
+    justEvaluated = true;
+  }
+
+  function showError(){
+    current = "Error";
+    previous = null;
+    operator = null;
+    justEvaluated = true;
+  }
+
+  function pulse(){
+    resultEl.style.transform = "scale(1.03)";
+    requestAnimationFrame(() => {
+      setTimeout(() => resultEl.style.transform = "scale(1)", 60);
+    });
+  }
+
+  document.querySelectorAll('button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const num = btn.dataset.num;
+      const op = btn.dataset.op;
+      const action = btn.dataset.action;
+
+      if(num !== undefined) inputDigit(num);
+      else if(op !== undefined) chooseOperator(op);
+      else if(action === "clear") clearAll();
+      else if(action === "sign") toggleSign();
+      else if(action === "percent") toPercent();
+      else if(action === "decimal") inputDecimal();
+      else if(action === "equals") equals();
+
+      updateDisplay();
+    });
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if(e.key >= '0' && e.key <= '9') inputDigit(e.key);
+    else if(e.key === '.') inputDecimal();
+    else if(e.key === '+') chooseOperator('+');
+    else if(e.key === '-') chooseOperator('−');
+    else if(e.key === '*') chooseOperator('×');
+    else if(e.key === '/') { e.preventDefault(); chooseOperator('÷'); }
+    else if(e.key === 'Enter' || e.key === '=') equals();
+    else if(e.key === 'Escape') clearAll();
+    else if(e.key === 'Backspace'){
+      current = current.length > 1 ? current.slice(0, -1) : "0";
+    }
+    updateDisplay();
+  });
+
+  updateDisplay();
+</script>
+
+</body>
+</html>
