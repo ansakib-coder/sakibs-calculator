@@ -1,0 +1,42 @@
+#include<stdio.h>
+int main()
+{
+    int a,b,res,choice;
+    printf("This is a calculator application....\n");
+    printf("1. Enter 1 to add two integer numbers.\n");
+    printf("2. Enter 2 to subtract two integer numbers.\n");
+    printf("3. Enter 3 to multiply two integer numbers.\n");
+    printf("4. Enter 4 to divide two integer numbers.\n");
+    printf("Enter First Number: ");
+    scanf("%d",&a);
+    printf("Enter Second Number: ");
+    scanf("%d",&b);
+    printf("Enter your choice(1 to 4) Numbers: ");
+    scanf("%d",&choice);
+
+    switch(choice)
+    {
+        case 1:
+            res=a+b;
+            printf("Addition is :%d\n",res);
+            break;
+        case 2:
+            res=a-b;
+            printf("Subtraction is :%d\n",res);
+            break;
+        case 3:
+            res=a*b;
+            printf("Multiplication is :%d\n",res);
+            break;
+        case 4:
+            res=a/b;
+            printf("Division is :%d\n",res);
+            break;
+        default:
+            printf("Wrong Input. Please try again with 1 to 4...\n");
+            getchar();
+    }
+    printf("Press any key to exit...\n");
+
+    return 0;
+}
